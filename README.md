@@ -48,9 +48,11 @@ Example Input
 
 ```JSON
 {
-  "name": "Aarav",
-  "email": "aarav@gmail",
-  "age": 16
+  "name": "",
+  "email": "user@gmail",
+  "age": 16,
+  "country": "India",
+  "phone": "99999"
 }
 ```
 
@@ -59,8 +61,16 @@ Example Output
 ```JSON
 {
   "is_valid": false,
-  "errors": ["email must be a valid email address"],
-  "warnings": ["age is below 18", "name is shorter than 3 characters"]
+  "errors": [
+    "name is required and non-empty",
+    "email must be valid",
+    "country must be an ISO-2 code",
+    "phone number must be in E.164 format"
+  ],
+  "warnings": [
+    "age < 18",
+    "disposable email"
+  ]
 }
 ```
 
