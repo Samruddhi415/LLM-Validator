@@ -1,0 +1,100 @@
+prompts:
+  - |
+    You have to act like a strict python validation script and give the output like a code.
+    if any of the rules are violated you have to flag the exact rule like how a validation script works.
+    Reply only with the rules that are violated in errors and warnings and only those rules must be written in your replies.
+    STRICTLY No extra explanation or text should be given.
+    You have to only flag the rules that are not satisfied and resposnd only with the rules listed. 
+    You have to reply with BLANKS if ALL the rules are satisfied.
+    You can only and must reply in JSON format.
+    All the rules are equally important and must be satisfied.
+
+    Input JSON: {{ input_data | dump }}
+    Validate based on these exact rules:
+    rules for Errors:
+    - name is required and non-empty
+    - email must be valid
+    - age must be positive
+    - country must be an ISO-2 code
+    - phone number must be in E.164 format
+
+    Rules for warnings:
+    - age < 18
+    - name shorter than 3 characters
+    - disposable email
+    - country code in phone number does not match country
+
+    Requirements:
+    - Output ONLY JSON without markdown code blocks
+    - Keys must be exactly: is_valid, errors[], warnings[]
+    - Recheck if all the rules for errors and warnings are satisfied.
+    - When the output is invalid state the exact rules violated.
+    - If all the rules are fulfilled you must leave errors BLANK 
+    - If all the rules are fulfilled you must leave warnings BLANK
+    - Only in case of rule violation of an error, you have to specify only the specific rule for error that was violated in the output
+    - Only in case of rule violation of a warning, you have to specify only the specific rule for warning that was violated in the output
+
+    Output ONLY JSON with keys:
+    is_valid, errors[], warnings[]
+    
+    Do NOT wrap the JSON in ```json or ``` markdown code blocks.
+
+providers:
+  - groq:llama-3.3-70b-versatile
+
+defaultTest:
+  assert:
+    - type: is-json
+
+tests:
+  - description: Valid user input should pass with no errors or warnings
+    vars:
+      input_data: file://example1.json
+        # name: "Aarav Patel"
+        # email: "aarav.patel@gmail.com"
+        # age: 24
+        # country: "IN"
+        # phone: "+919876543210"
+    assert:
+      - type: is-json     
+      - type: javascript
+        value: |-
+          const parsed = JSON.parse(output);
+          return parsed.is_valid === true && parsed.errors.length === 0 && parsed.warnings.length === 0     
+
+  - description: Invalid user input should be handled with correct errors and warnings
+    vars:
+      input_data: file://example2.json
+        # name: ""
+        # email: "user@gmail"
+        # age: 16
+        # country: "India"
+        # phone: "99999"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |-
+          const parsed = JSON.parse(output);
+          return parsed.is_valid === false
+      - type: javascript
+        value: |-
+          const parsed = JSON.parse(output);
+
+          if (parsed.errors.length === 0) return false;
+
+          if (parsed.errors.some(e => ![
+            "name is required and non-empty",
+            "email must be valid",
+            "age must be positive",
+            "country must be an ISO-2 code",
+            "phone number must be in E.164 format"
+          ].includes(e))) return false;
+
+          if (parsed.warnings.some(w => ![
+            "age < 18",
+            "name shorter than 3 characters",
+            "disposable email",
+            "country code in phone number does not match country"
+          ].includes(w))) return false;
+
+          return true
