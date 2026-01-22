@@ -86,14 +86,6 @@ To view the results in a web browser:
 npx promptfoo view
 ```
 
-## Engineering Decisions
-
-Prompt Strategy: Used high-level constraint expression rather than "list-style" rules to leverage the LLM's pre-trained knowledge of global standards (ISO, E.164).
-
-Deterministic Output: Set temperature: 0.0 in the LLM configuration to ensure consistency across multiple runs.
-
-Semantic Assertions: The evaluation suite uses JavaScript-based assertions to verify that specific "keywords" exist in the LLM's response, rather than requiring an exact 1:1 string match.
-
 ## Repository Structure
 
 validate_user.py: Main entry point for the CLI tool.
